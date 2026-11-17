@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER ARENA — Панель администратора</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #090d16; color: #e2e8f0; margin: 0; padding: 0; }
+        
+        /* Шапка клуба */
+        header {
+            background: linear-gradient(90deg, #0f172a 0%, #1e1b4b 100%);
+            border-bottom: 1px solid #312e81;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo { font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #38bdf8; display: flex; align-items: center; gap: 10px; }
+        .logo span { color: #a855f7; }
+
+        /* Главное меню с двумя кнопками */
+        .nav-buttons { display: flex; gap: 12px; }
+        .nav-btn {
+            padding: 10px 22px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #cbd5e1;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .nav-btn:hover { background: #334155; color: #fff; }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #0284c7, #6366f1);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+        }
+
+        .container { max-width: 1100px; margin: 25px auto; padding: 0 20px; }
+
+        /* Плашки онлайна по залам */
+        .zones-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+        .zone-pill {
+            background: #111827;
+            border: 1px solid #1f2937;
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+
+        .card { background: #111827; border: 1px solid #1f2937; padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        
+        /* Панель фильтров */
+        .filters-panel {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 850px) { .filters-panel { grid-template-columns: 1fr; } }
+
+        input, select {
+            background: #090d16;
+            border: 1px solid #374151;
+            color: #f8fafc;
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        input:focus, select:focus { border-color: #38bdf8; }
+
+        .btn-reset { background: #1f2937; color: #9ca3af; border: 1px solid #374151; padding: 11px 16px; border-radius: 8px; cursor: pointer; }
+        .btn-reset:hover { color: #fff; background: #374151; }
+
+        /* Таблица игроков */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 14px; color: #94a3b8; font-size: 13px; text-transform: uppercase; border-bottom: 1px solid #1f2937; }
+        td { padding: 14px; border-bottom: 1px solid #1f2937; font-size: 15px; }
+        tr:hover { background: #161f33; }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .badge-vip { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; border: 1px solid #a855f7; }
+        .badge-bootcamp { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid #ef4444; }
+        .badge-standard { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid #0284c7; }
+
+        .btn-action { padding: 7px 12px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .btn-edit { background: #f59e0b; color: #000; margin-right: 6px; }
+        .btn-del { background: #ef4444; color: #fff; }
+
+        /* Форма добавления / редактирования */
+        .form-box { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 13px; color: #94a3b8; }
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #6366f1);
+            color: #fff;
+            border: none;
+            padding: 13px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        .btn-primary:hover { opacity: 0.9; }
+
+        .alert { padding: 14px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: 500; }
+        .alert-error { background: rgba(220, 38, 38, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
+        .alert-success { background: rgba(22, 163, 74, 0.2); border: 1px solid #22c55e; color: #86efac; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">⚡ CYBER<span>ARENA</span></div>
+    <div class="nav-buttons">
+        <button id="tabListBtn" class="nav-btn active" onclick="switchTab('list')">👥 Список игроков</button>
+        <button id="tabAddBtn" class="nav-btn" onclick="switchTab('add')">➕ Новый игрок</button>
+    </div>
+</header>
+
+<div class="container">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Статус залов -->
+    <div id="statsContainer" class="zones-bar"></div>
+
+    <!-- ВКЛАДКА 1: СПИСОК ИГРОКОВ И ФИЛЬТРЫ -->
+    <div id="listSection" class="card">
+        <div class="filters-panel">
+            <input type="text" id="searchInput" placeholder="🔍 Поиск игрока по никнейму..." oninput="loadPlayers()">
+            
+            <select id="zoneFilter" onchange="loadPlayers()">
+                <option value="all">Все залы клуба</option>
+                <option value="Standard">Зал: Standard</option>
+                <option value="VIP">Зал: VIP</option>
+                <option value="Bootcamp">Зал: Bootcamp</option>
+            </select>
+
+            <select id="balanceFilter" onchange="loadPlayers()">
+                <option value="0">Любой баланс</option>
+                <option value="2000">Баланс от 2 000 ₸</option>
+                <option value="4000">VIP-баланс от 4 000 ₸</option>
+            </select>
+
+            <select id="sortSelect" onchange="loadPlayers()">
+                <option value="id">Сортировка: По умолчанию</option>
+                <option value="balance_desc">Сначала высокий баланс</option>
+                <option value="balance_asc">Сначала низкий баланс</option>
+                <option value="nick_asc">По алфавиту (A–Z)</option>
+            </select>
+
+            <button class="btn-reset" onclick="resetFilters()">Сбросить</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Никнейм</th>
+                    <th>Ранг / Уровень</th>
+                    <th>Баланс</th>
+                    <th>Рабочее место</th>
+                    <th>Тариф</th>
+                    <th>Управление</th>
+                </tr>
+            </thead>
+            <tbody id="playersTable"></tbody>
+        </table>
+    </div>
+
+    <!-- ВКЛАДКА 2: ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ ИГРОКА -->
+    <div id="addSection" class="card" style="display: none;">
+        <h2 id="formTitle" style="text-align: center; margin-top: 0;">Регистрация нового игрока</h2>
+        <form id="playerForm" class="form-box">
+            <input type="hidden" id="playerId">
+            
+            <div class="form-group">
+                <label>Никнейм игрока *</label>
+                <input type="text" id="nickname" placeholder="Например: s1mple_kz" required>
+            </div>
+
+            <div class="form-group">
+                <label>Ранг / Уровень *</label>
+                <select id="rank" required>
+                    <option value="">Выберите ранг...</option>
+                    <option value="Silver">Silver (Новичок)</option>
+                    <option value="Gold Nova">Gold Nova (Любитель)</option>
+                    <option value="Legendary Eagle">Legendary Eagle (Опытный)</option>
+                    <option value="Global Elite">Global Elite (Профи)</option>
+                    <option value="Immortal">Immortal (Киберспортсмен)</option>
+                    <option value="Divine">Divine (Мастер)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Стартовый баланс (₸) *</label>
+                <input type="number" id="balance" placeholder="Например: 3000" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label>Выберите компьютер *</label>
+                <select id="pcSelect" required>
+                    <option value="">Загрузка свободных ПК...</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-primary">Сохранить в базу клуба</button>
+            <button type="button" id="cancelBtn" class="btn-reset" style="display:none;" onclick="cancelEdit()">Отменить редактирование</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        const listSec = document.getElementById('listSection');
+        const addSec = document.getElementById('addSection');
+        const listBtn = document.getElementById('tabListBtn');
+        const addBtn = document.getElementById('tabAddBtn');
+
+        if (tab === 'list') {
+            listSec.style.display = 'block';
+            addSec.style.display = 'none';
+            listBtn.classList.add('active');
+            addBtn.classList.remove('active');
+        } else {
+            listSec.style.display = 'none';
+            addSec.style.display = 'block';
+            addBtn.classList.add('active');
+            listBtn.classList.remove('active');
+        }
+    }
+
+    function showAlert(msg, isError = false) {
+        const box = document.getElementById('alertBox');
+        box.textContent = msg;
+        box.className = isError ? 'alert alert-error' : 'alert alert-success';
+        box.style.display = 'block';
+        setTimeout(() => box.style.display = 'none', 6000);
+    }
+
+    async function loadPcs() {
+        try {
+            const res = await fetch('/api/pcs');
+            const pcs = await res.json();
+            if (!res.ok) throw new Error(pcs.error);
+
+            const select = document.getElementById('pcSelect');
+            select.innerHTML = '<option value="">-- Выберите место --</option>';
+            pcs.forEach(pc => {
+                select.innerHTML += `<option value="${pc.id}">ПК #${pc.id} — Зал ${pc.zone} (${pc.hourly_rate} ₸/час)</option>`;
+            });
+        } catch (err) {
+            showAlert('Не удалось загрузить компьютеры: ' + err.message, true);
+        }
+    }
+
+    async function loadStats() {
+        try {
+            const res = await fetch('/api/stats');
+            const stats = await res.json();
+            if (!res.ok) throw new Error(stats.error);
+
+            const container = document.getElementById('statsContainer');
+            container.innerHTML = stats.map(s => `
+                <div class="zone-pill">
+                    <div class="dot"></div>
+                    <span>Зал <strong>${s.zone}</strong>: ${s.player_count} чел.</span>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function loadPlayers() {
+        try {
+            const search = document.getElementById('searchInput').value;
+            const zone = document.getElementById('zoneFilter').value;
+            const minBalance = document.getElementById('balanceFilter').value;
+            const sort = document.getElementById('sortSelect').value;
+
+            const url = `/api/players?search=${encodeURIComponent(search)}&zone=${zone}&minBalance=${minBalance}&sort=${sort}`;
+            const res = await fetch(url);
+            const players = await res.json();
+            if (!res.ok) throw new Error(players.error);
+
+            const tbody = document.getElementById('playersTable');
+            if (players.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">Игроки по заданным фильтрам не найдены</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = players.map(p => {
+                let badgeClass = 'badge-standard';
+                if (p.zone === 'VIP') badgeClass = 'badge-vip';
+                if (p.zone === 'Bootcamp') badgeClass = 'badge-bootcamp';
+
+                return `
+                <tr>
+                    <td>#${p.id}</td>
+                    <td><strong>${p.nickname}</strong></td>
+                    <td>${p.rank}</td>
+                    <td style="color:#4ade80; font-weight:600;">${p.balance} ₸</td>
+                    <td>ПК #${p.pc_id} <span class="badge ${badgeClass}">${p.zone}</span></td>
+                    <td>${p.hourly_rate} ₸/ч</td>
+                    <td>
+                        <button class="btn-action btn-edit" onclick="editPlayer(${p.id}, '${p.nickname}', '${p.rank}', ${p.balance}, ${p.pc_id})">Изменить</button>
+                        <button class="btn-action btn-del" onclick="deletePlayer(${p.id})">Удалить</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        } catch (err) {
+            showAlert(err.message, true);
+        }
+    }
+
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('zoneFilter').value = 'all';
+        document.getElementById('balanceFilter').value = '0';
+        document.getElementById('sortSelect').value = 'id';
+        loadPlayers();
+    }
+
+    document.getElementById('playerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('playerId').value;
+        const data = {
+            nickname: document.getElementById('nickname').value,
+            rank: document.getElementById('rank').value,
+            balance: document.getElementById('balance').value,
+            pc_id: document.getElementById('pcSelect').value
+        };
+
+        const url = id ? `/api/players/${id}` : '/api/players';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+
+        if (!res.ok) {
+            showAlert(result.error, true);
+        } else {
+            showAlert(id ? 'Данные игрока обновлены!' : 'Новый игрок успешно зарегистрирован!');
+            cancelEdit();
+            loadPlayers();
+            loadStats();
+            switchTab('list');
+        }
+    });
+
+    function editPlayer(id, nickname, rank, balance, pc_id) {
+        document.getElementById('playerId').value = id;
+        document.getElementById('nickname').value = nickname;
+        document.getElementById('rank').value = rank;
+        document.getElementById('balance').value = balance;
+        document.getElementById('pcSelect').value = pc_id;
+        document.getElementById('formTitle').textContent = `Редактирование игрока #${id}`;
+        document.getElementById('cancelBtn').style.display = 'block';
+        switchTab('add');
+    }
+
+    function cancelEdit() {
+        document.getElementById('playerForm').reset();
+        document.getElementById('playerId').value = '';
+        document.getElementById('formTitle').textContent = 'Регистрация нового игрока';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
+
+    async function deletePlayer(id) {
+        if (!confirm('Удалить этого игрока из базы клуба?')) return;
+        const res = await fetch(`/api/players/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (!res.ok) {
+            showAlert(result.error, true);
+        } else {
+            showAlert(result.message);
+            loadPlayers();
+            loadStats();
+        }
+    }
+
+    loadPcs();
+    loadStats();
+    loadPlayers();
+</script>
+</body>
+</html>
