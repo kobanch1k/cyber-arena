@@ -6,28 +6,30 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const pool = new Pool({
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
-});
+const pool = process.env.DATABASE_URL
+    ? new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false }
+      })
+    : new Pool({
+          user: process.env.DB_USER,
+          password: process.env.DB_PASSWORD,
+          host: process.env.DB_HOST,
+          port: process.env.DB_PORT,
+          database: process.env.DB_NAME,
+      });
 
-// Проверка подключения к БД при старте
 pool.query('SELECT NOW()', (err) => {
     if (err) {
         console.error('❌ ОШИБКА ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ:', err.message);
-        console.error('Проверь пароль в файле .env и убедись, что база cyber_arena создана!');
     } else {
-        console.log('✅ Успешное подключение к PostgreSQL (база cyber_arena)');
+        console.log('✅ Успешное подключение к PostgreSQL');
     }
 });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 1. GET: Список игроков с JOIN + поиск (ILIKE) + фильтры (WHERE) + сортировка (ORDER BY)
 app.get('/api/players', async (req, res) => {
     try {
         const { search = '', sort = 'id', zone = 'all', minBalance = 0 } = req.query;
@@ -61,7 +63,6 @@ app.get('/api/players', async (req, res) => {
     }
 });
 
-// 2. GET: Список компьютеров
 app.get('/api/pcs', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM pcs ORDER BY id ASC');
@@ -71,7 +72,6 @@ app.get('/api/pcs', async (req, res) => {
     }
 });
 
-// 3. GET: Статистика по зонам (GROUP BY + COUNT)
 app.get('/api/stats', async (req, res) => {
     try {
         const query = `
@@ -88,7 +88,6 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-// 4. POST: Добавить игрока
 app.post('/api/players', async (req, res) => {
     try {
         const { nickname, rank, balance, pc_id } = req.body;
@@ -108,7 +107,6 @@ app.post('/api/players', async (req, res) => {
     }
 });
 
-// 5. PUT: Редактировать игрока
 app.put('/api/players/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -131,7 +129,6 @@ app.put('/api/players/:id', async (req, res) => {
     }
 });
 
-// 6. DELETE: Удалить игрока
 app.delete('/api/players/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -149,5 +146,5 @@ app.delete('/api/players/:id', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Сервер CyberArena запущен: http://localhost:${PORT}`);
+    console.log(`🚀 Сервер CyberArena запущен на порту ${PORT}`);
 });
